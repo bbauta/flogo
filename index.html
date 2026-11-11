@@ -13,13 +13,14 @@ img{max-width:100%}
 <title>Flogo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Fredoka:wght@600&display=swap">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='60 330 860 270'%3E%3Cg stroke='%23000' stroke-width='14' stroke-linejoin='round' fill='%23FF9A5A'%3E%3Cpath d='M545 455C620 440 700 430 780 420C820 412 860 400 885 400C895 405 870 420 850 440C820 470 760 480 700 485C760 500 820 520 865 545C870 552 860 555 840 552C760 552 680 545 620 512C590 495 560 470 545 455Z'/%3E%3Cpath d='M130 455C150 400 300 385 400 400C470 410 520 440 550 455C560 465 540 470 520 465C470 470 400 500 340 530C290 560 220 580 165 570C120 560 100 500 130 455Z'/%3E%3C/g%3E%3C/svg%3E">
 <style>
 /* Layout: sticker-card arcade. Sticky tab bar, a hero row (thesis + live check-in), tile grids below; every game and exercise opens on one stage overlay. */
 :root{
   --paper:#ECEFF6; --surface:#FFFFFF; --sunk:#DEE2EE; --ink:#141A35; --muted:#555C7B;
   --line:#141A35; --shadow:#141A35;
-  --flare:#FF5B3A; --mint:#14B398; --sun:#FFC233; --sky:#5A82FF; --plum:#A862F0; --on-accent:#141A35;
+  --flare:#FF8E4F; --mint:#14B398; --sun:#FFC233; --sky:#8C90E6; --plum:#A862F0; --on-accent:#141A35;
   --f-display:"Bricolage Grotesque","Arial Black",system-ui,sans-serif;
   --f-body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
@@ -29,14 +30,14 @@ img{max-width:100%}
   :root:not([data-theme="light"]){
     --paper:#0E1120; --surface:#181C31; --sunk:#232842; --ink:#EEF0FA; --muted:#A6ACCB;
     --line:#5D6491; --shadow:#03040A;
-    --flare:#FF7052; --mint:#2CD3B6; --sun:#FFCD4F; --sky:#7896FF; --plum:#BE86FF; --on-accent:#141A35;
+    --flare:#FF9A5A; --mint:#2CD3B6; --sun:#FFCD4F; --sky:#A2A5F0; --plum:#BE86FF; --on-accent:#141A35;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --paper:#0E1120; --surface:#181C31; --sunk:#232842; --ink:#EEF0FA; --muted:#A6ACCB;
   --line:#5D6491; --shadow:#03040A;
-  --flare:#FF7052; --mint:#2CD3B6; --sun:#FFCD4F; --sky:#7896FF; --plum:#BE86FF; --on-accent:#141A35;
+  --flare:#FF9A5A; --mint:#2CD3B6; --sun:#FFCD4F; --sky:#A2A5F0; --plum:#BE86FF; --on-accent:#141A35;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -55,7 +56,9 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--paper);border-bottom:2px solid var(--line)}
 .top .wrap{display:flex;align-items:center;gap:16px;padding-block:12px;flex-wrap:wrap}
 .logo{font-family:var(--f-display);font-weight:800;font-size:30px;letter-spacing:-.04em;text-decoration:none;color:var(--ink);display:flex;align-items:center;gap:8px}
-.logo i{display:inline-block;width:22px;height:22px;border-radius:50% 50% 50% 4px;background:var(--flare);border:2px solid var(--line);transform:rotate(-12deg)}
+.logo svg{width:52px;height:52px;flex:none}
+.hero-brand{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.hero-brand svg{width:132px;height:132px;flex:none;transform:rotate(-4deg);filter:drop-shadow(4px 4px 0 var(--shadow))}
 nav.tabs{display:flex;gap:4px;flex-wrap:wrap}
 nav.tabs a{font-weight:600;text-decoration:none;color:var(--muted);padding:7px 12px;border-radius:999px;border:2px solid transparent}
 nav.tabs a:hover{color:var(--ink)}
@@ -244,9 +247,31 @@ footer a{color:var(--ink)}
 </head>
 <body>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="flogo-logo" viewBox="0 0 1000 1000">
+    <circle cx="500" cy="500" r="490" fill="#FFFFFF"/>
+    <g fill="none" stroke="#9C9EE3" stroke-width="9" stroke-linecap="round">
+      <circle cx="500" cy="485" r="415" stroke-dasharray="520 120" transform="rotate(-60 500 485)"/>
+      <circle cx="495" cy="470" r="290" stroke-dasharray="150 110" transform="rotate(-20 495 470)"/>
+      <path d="M490 312C560 295 620 320 655 380M415 580C470 600 540 600 595 575"/>
+    </g>
+    <g font-family="Fredoka,'Arial Rounded MT Bold','Trebuchet MS',sans-serif" font-weight="600" font-size="215" text-anchor="middle" fill="#FF9A5A" stroke="#000" stroke-width="11" stroke-linejoin="round" paint-order="stroke">
+      <text x="495" y="268" letter-spacing="14">FLO</text>
+      <text x="510" y="822" letter-spacing="14">GO</text>
+    </g>
+    <g fill="#FF9A5A" stroke="#000" stroke-width="9" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M240 395C255 365 300 350 355 340C350 352 362 362 356 372C366 378 362 386 350 392Z"/>
+      <path d="M545 455C620 440 700 430 780 420C820 412 860 400 885 400C895 405 870 420 850 440C820 470 760 480 700 485C760 500 820 520 865 545C870 552 860 555 840 552C760 552 680 545 620 512C590 495 560 470 545 455Z"/>
+      <path d="M130 455C150 400 300 385 400 400C470 410 520 440 550 455C560 465 540 470 520 465C470 470 400 500 340 530C290 560 220 580 165 570C120 560 100 500 130 455Z"/>
+      <path d="M370 500C392 494 412 500 432 506C416 520 392 526 372 520Z"/>
+      <path d="M258 482C262 455 285 440 302 446C322 454 342 446 372 428" fill="none"/>
+    </g>
+    <circle cx="128" cy="456" r="11" fill="#000"/><circle cx="170" cy="568" r="11" fill="#000"/>
+  </symbol>
+</svg>
 <header class="top">
   <div class="wrap">
-    <a class="logo" href="#home"><i aria-hidden="true"></i>flogo</a>
+    <a class="logo" href="#home" aria-label="Flogo home"><svg aria-hidden="true"><use href="#flogo-logo"/></svg>flogo</a>
     <nav class="tabs" aria-label="Main">
       <a href="#home" data-view="home">Home</a>
       <a href="#play" data-view="play">Play</a>
@@ -265,7 +290,7 @@ footer a{color:var(--ink)}
   <section class="view" id="view-home">
     <div class="hero">
       <div class="hero-copy">
-        <span class="eyebrow">Social-emotional training · ages 15–25</span>
+        <div class="hero-brand"><svg role="img" aria-label="Flogo logo"><use href="#flogo-logo"/></svg><span class="eyebrow">Social-emotional training · ages 15–25</span></div>
         <h1>Hard moments are a <span class="sticker">skill</span>. Practice them <span class="ul">before</span> they happen.</h1>
         <p class="lead">Flogo is a training ground for the stuff nobody hands you a manual for: group-chat drama, a friend in crisis, a bad grade, pressure at a party. Play through it, move through it, and build the five skills that make tough days easier.</p>
         <div class="hero-cta">
