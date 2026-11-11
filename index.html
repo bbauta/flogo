@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Flogo: practice tough moments through games and quick reset exercises. A social-emotional learning prototype for ages 15–25.">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>Flogo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: sticker-card arcade. Sticky tab bar, a hero row (thesis + live check-in), tile grids below; every game and exercise opens on one stage overlay. */
+:root{
+  --paper:#ECEFF6; --surface:#FFFFFF; --sunk:#DEE2EE; --ink:#141A35; --muted:#555C7B;
+  --line:#141A35; --shadow:#141A35;
+  --flare:#FF5B3A; --mint:#14B398; --sun:#FFC233; --sky:#5A82FF; --plum:#A862F0; --on-accent:#141A35;
+  --f-display:"Bricolage Grotesque","Arial Black",system-ui,sans-serif;
+  --f-body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1120; --surface:#181C31; --sunk:#232842; --ink:#EEF0FA; --muted:#A6ACCB;
+    --line:#5D6491; --shadow:#03040A;
+    --flare:#FF7052; --mint:#2CD3B6; --sun:#FFCD4F; --sky:#7896FF; --plum:#BE86FF; --on-accent:#141A35;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1120; --surface:#181C31; --sunk:#232842; --ink:#EEF0FA; --muted:#A6ACCB;
+  --line:#5D6491; --shadow:#03040A;
+  --flare:#FF7052; --mint:#2CD3B6; --sun:#FFCD4F; --sky:#7896FF; --plum:#BE86FF; --on-accent:#141A35;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--paper)}
+body{color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--f-display);line-height:1.05;margin:0;text-wrap:balance;letter-spacing:-.01em}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--sky);outline-offset:2px;border-radius:6px}
+.wrap{max-width:1140px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.mono{font-family:var(--f-mono)}
+.eyebrow{font-family:var(--f-mono);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+/* header */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--paper);border-bottom:2px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:16px;padding-block:12px;flex-wrap:wrap}
+.logo{font-family:var(--f-display);font-weight:800;font-size:30px;letter-spacing:-.04em;text-decoration:none;color:var(--ink);display:flex;align-items:center;gap:8px}
+.logo i{display:inline-block;width:22px;height:22px;border-radius:50% 50% 50% 4px;background:var(--flare);border:2px solid var(--line);transform:rotate(-12deg)}
+nav.tabs{display:flex;gap:4px;flex-wrap:wrap}
+nav.tabs a{font-weight:600;text-decoration:none;color:var(--muted);padding:7px 12px;border-radius:999px;border:2px solid transparent}
+nav.tabs a:hover{color:var(--ink)}
+nav.tabs a[aria-current="page"]{color:var(--on-accent);background:var(--sun);border-color:var(--line)}
+.top .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.xp-chip{font-family:var(--f-mono);font-size:13px;font-weight:600;padding:6px 10px;border:2px solid var(--line);border-radius:999px;background:var(--surface);font-variant-numeric:tabular-nums}
+.help-btn{font-weight:700;padding:7px 12px;border-radius:999px;border:2px solid var(--line);background:var(--flare);color:var(--on-accent)}
+
+/* shared */
+.card{background:var(--surface);border:2px solid var(--line);border-radius:var(--r);box-shadow:4px 4px 0 var(--shadow)}
+.btn{display:inline-flex;align-items:center;gap:8px;font-weight:700;padding:10px 16px;border-radius:999px;border:2px solid var(--line);background:var(--surface);transition:transform .12s, box-shadow .12s;box-shadow:3px 3px 0 var(--shadow)}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--shadow)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}
+.btn.primary{background:var(--mint);color:var(--on-accent)}
+.btn.hot{background:var(--flare);color:var(--on-accent)}
+.btn.ghost{box-shadow:none;background:transparent}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.tag{display:inline-block;font-family:var(--f-mono);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border:1.5px solid var(--line);border-radius:6px;background:var(--sunk)}
+.skill-dot{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);font-weight:500}
+.skill-dot::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--c);border:1.5px solid var(--line)}
+main{padding-block:28px 60px}
+section.view{display:flex;flex-direction:column;gap:36px}
+.sec-head{display:flex;align-items:end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.sec-head h2{font-size:clamp(26px,4vw,36px);font-weight:800}
+.sec-head p{color:var(--muted);max-width:60ch}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.25fr 1fr;gap:28px;align-items:start}
+.hero h1{font-size:clamp(40px,7vw,80px);font-weight:800;letter-spacing:-.035em}
+.hero h1 .sticker{display:inline-block;background:var(--sun);color:var(--on-accent);border:2.5px solid var(--line);border-radius:12px;padding:0 .14em;transform:rotate(-2deg);box-shadow:4px 4px 0 var(--shadow)}
+.hero h1 .ul{text-decoration:underline;text-decoration-color:var(--flare);text-decoration-thickness:.12em;text-underline-offset:.08em}
+.hero-copy{display:flex;flex-direction:column;gap:20px;padding-top:6px}
+.hero-copy p.lead{font-size:19px;color:var(--muted);max-width:52ch}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap}
+.skill-key{display:flex;flex-wrap:wrap;gap:8px 16px}
+
+/* check-in */
+.checkin{padding:20px;display:flex;flex-direction:column;gap:16px}
+.checkin h3{font-size:24px}
+.moods{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.mood{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 2px;border:2px solid var(--line);border-radius:12px;background:var(--paper);font-weight:600;font-size:13px}
+.mood .face{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:var(--mc);position:relative}
+.mood[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:600;font-size:14px}
+.field small{color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--flare)}
+textarea,input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:9px 11px;resize:vertical}
+.suggest{padding:14px;border-radius:12px;background:var(--sunk);border:2px dashed var(--line);display:flex;flex-direction:column;gap:10px}
+
+/* tiles */
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px}
+.tile{display:flex;flex-direction:column;gap:12px;padding:18px;text-align:left;position:relative;overflow:hidden;transition:transform .15s, box-shadow .15s}
+.tile:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--shadow)}
+.tile .art{height:120px;margin:-18px -18px 4px;border-bottom:2px solid var(--line);background:var(--tc);position:relative;overflow:hidden}
+.tile h3{font-size:26px;font-weight:800}
+.tile p{color:var(--muted);font-size:15px}
+.tile .meta{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;flex-wrap:wrap}
+.tile .meta .mono{font-size:12px;color:var(--muted)}
+.art svg{position:absolute;inset:0;width:100%;height:100%}
+
+.today{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.stat{padding:16px;display:flex;flex-direction:column;gap:2px}
+.stat b{font-family:var(--f-display);font-size:40px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.stat span{color:var(--muted);font-size:14px}
+.bars{display:flex;flex-direction:column;gap:14px;padding:20px}
+.bar-row{display:grid;grid-template-columns:170px 1fr 70px;gap:12px;align-items:center}
+.bar-row .track{height:18px;border:2px solid var(--line);border-radius:999px;background:var(--sunk);overflow:hidden}
+.bar-row .fill{height:100%;background:var(--c);border-right:2px solid var(--line);width:0;transition:width .6s}
+.bar-row .lv{font-family:var(--f-mono);font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
+.two{display:grid;grid-template-columns:1.2fr 1fr;gap:20px;align-items:start}
+.chart{padding:20px;display:flex;flex-direction:column;gap:14px}
+.cols{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:end;height:170px;border-bottom:2px solid var(--line);padding-bottom:0}
+.col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%}
+.col .b{width:100%;max-width:38px;border:2px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--mc)}
+.col .n{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.col-labels{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;font-family:var(--f-mono);font-size:11px;color:var(--muted);text-align:center}
+.example-note{font-size:13px;color:var(--muted);font-style:italic}
+.log{display:flex;flex-direction:column;gap:8px;padding:20px}
+.log-item{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;padding-bottom:8px;border-bottom:1px dashed var(--line)}
+.log-item:last-child{border-bottom:0}
+.log-item .d{font-family:var(--f-mono);font-size:12px;color:var(--muted);white-space:nowrap}
+
+/* stage */
+#stage{position:fixed;inset:0;z-index:50;background:color-mix(in srgb,var(--paper) 70%,transparent);backdrop-filter:blur(6px);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:calc(20px + env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+.stage-inner{width:100%;max-width:760px;padding:22px;display:flex;flex-direction:column;gap:18px}
+.stage-head{display:flex;justify-content:space-between;align-items:start;gap:12px}
+.stage-head h2{font-size:clamp(28px,5vw,40px);font-weight:800}
+#stageBody{display:flex;flex-direction:column;gap:18px}
+.lede{color:var(--muted);font-size:17px;max-width:62ch}
+.pick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.pick{display:flex;flex-direction:column;gap:8px;align-items:flex-start;text-align:left;padding:14px;border:2px solid var(--line);border-radius:12px;background:var(--paper);box-shadow:3px 3px 0 var(--shadow)}
+.pick strong{font-family:var(--f-display);font-size:21px;line-height:1.1}
+.pick small{color:var(--muted)}
+.pick:hover{background:var(--sunk)}
+.scene-text{font-size:19px;line-height:1.5;padding:16px;border-left:5px solid var(--flare);background:var(--paper);border-radius:0 10px 10px 0}
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{display:grid;grid-template-columns:32px 1fr;gap:12px;align-items:start;text-align:left;padding:12px 14px;border:2px solid var(--line);border-radius:12px;background:var(--surface);font-size:16px}
+.choice .key{width:30px;height:30px;display:grid;place-items:center;border:2px solid var(--line);border-radius:8px;font-family:var(--f-mono);font-weight:600;background:var(--sunk)}
+.choice:hover:not(:disabled){background:var(--paper)}
+.choice:disabled{cursor:default;opacity:.55}
+.choice.picked{opacity:1;background:var(--paper);box-shadow:3px 3px 0 var(--shadow)}
+.choice.right{opacity:1;background:color-mix(in srgb,var(--mint) 30%,var(--surface))}
+.choice.wrong{opacity:1;background:color-mix(in srgb,var(--flare) 25%,var(--surface))}
+.fb{padding:16px;border-radius:12px;border:2px solid var(--line);background:var(--sunk);display:flex;flex-direction:column;gap:10px}
+.q{display:inline-block;font-family:var(--f-mono);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:999px;border:2px solid var(--line);color:var(--on-accent);width:max-content}
+.q.strong{background:var(--mint)} .q.okay{background:var(--sun)} .q.rough{background:var(--flare)}
+.earn{display:flex;flex-wrap:wrap;gap:8px}
+.earn span{font-family:var(--f-mono);font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;border:2px solid var(--line);background:var(--c);color:var(--on-accent)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.spread{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.timer{height:12px;border:2px solid var(--line);border-radius:999px;overflow:hidden;background:var(--sunk)}
+.timer i{display:block;height:100%;background:var(--sky);width:100%}
+.prompt-card{padding:18px;border-radius:12px;background:var(--paper);border:2px solid var(--line);font-size:19px}
+.opts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.opt{padding:14px;border:2px solid var(--line);border-radius:12px;background:var(--surface);font-weight:700;font-size:17px;text-align:left}
+.opt:hover:not(:disabled){background:var(--sunk)}
+.opt:disabled{cursor:default}
+.thought{font-family:var(--f-display);font-size:clamp(22px,4vw,30px);font-weight:700;line-height:1.2;padding:18px 20px;background:var(--paper);border:2px solid var(--line);border-radius:22px 22px 22px 4px;position:relative}
+.score{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums}
+.big-result{font-family:var(--f-display);font-size:64px;font-weight:800;line-height:1}
+
+/* steady */
+.steady-wrap{position:relative;border:2px solid var(--line);border-radius:12px;overflow:hidden;background:var(--sunk)}
+.steady-wrap canvas{display:block;width:100%;height:320px;touch-action:none;user-select:none;-webkit-user-select:none}
+.steady-hud{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;pointer-events:none}
+.steady-hud span{font-family:var(--f-mono);font-size:13px;font-weight:600;padding:4px 9px;border-radius:999px;border:2px solid var(--line);background:var(--surface)}
+.steady-hud #sPhase{background:var(--sun);color:var(--on-accent)}
+.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:color-mix(in srgb,var(--sunk) 82%,transparent);text-align:center;padding:16px}
+.overlay small{color:var(--muted)}
+
+/* breathing */
+.box-wrap{display:grid;place-items:center;gap:14px}
+.box-wrap svg{width:min(280px,80vw);height:auto}
+.phase{font-family:var(--f-display);font-size:34px;font-weight:800}
+.count{font-family:var(--f-mono);font-size:15px;color:var(--muted)}
+
+/* routine */
+.segs{display:flex;gap:4px}
+.segs i{flex:1;height:10px;border-radius:4px;border:1.5px solid var(--line);background:var(--sunk)}
+.segs i.done{background:var(--mint)} .segs i.now{background:var(--sun)}
+.move-now{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;padding:20px;border:2px solid var(--line);border-radius:14px;background:var(--paper)}
+.move-now h3{font-size:clamp(28px,5vw,40px);font-weight:800}
+.move-now p{color:var(--muted)}
+.secs{font-family:var(--f-mono);font-size:64px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.steps-list{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.steps-list li{display:flex;justify-content:space-between;gap:12px;padding:8px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--paper)}
+.steps-list li span:last-child{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+.ground-num{font-family:var(--f-display);font-size:110px;font-weight:800;line-height:.9;color:var(--sky);-webkit-text-stroke:2px var(--line)}
+.ground-inputs{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.safety{font-size:14px;color:var(--muted)}
+
+/* help */
+.help-list{display:flex;flex-direction:column;gap:12px}
+.help-item{padding:14px 16px;border:2px solid var(--line);border-radius:12px;background:var(--paper);display:flex;flex-direction:column;gap:4px}
+.help-item b{font-family:var(--f-display);font-size:22px}
+.help-item .num{font-family:var(--f-mono);font-size:18px;font-weight:600;user-select:all}
+
+footer{border-top:2px solid var(--line);padding-block:24px;color:var(--muted);font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer a{color:var(--ink)}
+
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(140%);z-index:80;background:var(--ink);color:var(--paper);font-weight:700;padding:10px 18px;border-radius:999px;transition:transform .3s;max-width:calc(100vw - 32px);text-align:center}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+@media (max-width:860px){
+  .hero,.two{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:520px){
+  .bar-row{grid-template-columns:1fr 60px}
+  .bar-row .track{grid-column:1 / -1;grid-row:2}
+  .opts{grid-template-columns:1fr}
+  .move-now{grid-template-columns:1fr}
+  .moods{gap:4px}
+  .mood{font-size:12px}
+  .top .right{margin-left:0;width:100%;justify-content:space-between}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#home"><i aria-hidden="true"></i>flogo</a>
+    <nav class="tabs" aria-label="Main">
+      <a href="#home" data-view="home">Home</a>
+      <a href="#play" data-view="play">Play</a>
+      <a href="#move" data-view="move">Move</a>
+      <a href="#progress" data-view="progress">Progress</a>
+    </nav>
+    <div class="right">
+      <span class="xp-chip" id="xpChip" title="Total skill points">0 XP · 0-day streak</span>
+      <button class="help-btn" id="helpBtn" type="button">Need help now?</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- HOME -->
+  <section class="view" id="view-home">
+    <div class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">Social-emotional training · ages 15–25</span>
+        <h1>Hard moments are a <span class="sticker">skill</span>. Practice them <span class="ul">before</span> they happen.</h1>
+        <p class="lead">Flogo is a training ground for the stuff nobody hands you a manual for: group-chat drama, a friend in crisis, a bad grade, pressure at a party. Play through it, move through it, and build the five skills that make tough days easier.</p>
+        <div class="hero-cta">
+          <a class="btn hot" href="#play">Play a game</a>
+          <a class="btn" href="#move">Do a 2-minute reset</a>
+        </div>
+        <div class="skill-key" id="skillKey"></div>
+      </div>
+      <form class="card checkin" id="checkin" autocomplete="off">
+        <div>
+          <span class="eyebrow">Daily check-in</span>
+          <h3>How's your head today?</h3>
+        </div>
+        <div class="moods" role="group" aria-label="Mood" id="moods"></div>
+        <div class="field">
+          <label for="energy">Energy: <span id="energyVal">5</span>/10</label>
+          <input type="range" id="energy" min="0" max="10" value="5">
+        </div>
+        <div class="field">
+          <label for="note">What's on your mind? <small>(optional, stays on this device)</small></label>
+          <textarea id="note" rows="2" placeholder="e.g. nervous about Friday"></textarea>
+        </div>
+        <button class="btn primary" type="submit" id="saveCheck" disabled>Save check-in</button>
+        <div class="suggest" id="suggest" hidden></div>
+      </form>
+    </div>
+
+    <div class="sec-head">
+      <div>
+        <span class="eyebrow">Today's set</span>
+        <h2>One game, one move. About 10 minutes.</h2>
+      </div>
+    </div>
+    <div class="today" id="todaySet"></div>
+  </section>
+
+  <!-- PLAY -->
+  <section class="view" id="view-play" hidden>
+    <div class="sec-head">
+      <div>
+        <span class="eyebrow">Play</span>
+        <h2>Four ways to practice tough moments</h2>
+      </div>
+      <p>Story choices, quick-fire reads, thought puzzles, and an arcade game that trains your breathing. Each one builds specific skills.</p>
+    </div>
+    <div class="tiles" id="gameTiles"></div>
+  </section>
+
+  <!-- MOVE -->
+  <section class="view" id="view-move" hidden>
+    <div class="sec-head">
+      <div>
+        <span class="eyebrow">Move</span>
+        <h2>Reset your body, reset your head</h2>
+      </div>
+      <p>Short guided exercises for when stress is loud. Breathing slows your heart rate, grounding pulls you back to the present, and movement burns off the adrenaline.</p>
+    </div>
+    <div class="tiles" id="moveTiles"></div>
+  </section>
+
+  <!-- PROGRESS -->
+  <section class="view" id="view-progress" hidden>
+    <div class="sec-head">
+      <div>
+        <span class="eyebrow">Progress</span>
+        <h2>Your skill build</h2>
+      </div>
+      <p>Points come from the choices you make and the exercises you finish. Every 100 points is a new level.</p>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="card bars" id="skillBars"></div>
+    <div class="two">
+      <div class="card chart">
+        <div class="spread"><h3 style="font-size:22px">Mood, last 7 check-ins</h3><span class="eyebrow">1 heavy · 5 bright</span></div>
+        <div class="cols" id="moodCols"></div>
+        <div class="col-labels" id="moodLabels"></div>
+        <p class="example-note" id="exampleNote" hidden>Example data. Your own check-ins replace it.</p>
+      </div>
+      <div class="card log" id="moodLog"></div>
+    </div>
+    <div class="row"><button class="btn ghost" id="resetBtn" type="button">Clear my progress on this device</button><span id="resetConfirm" hidden class="row"><span>Clear everything?</span><button class="btn hot" id="resetYes" type="button">Yes, clear</button><button class="btn ghost" id="resetNo" type="button">Cancel</button></span></div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Flogo prototype · progress is saved only in this browser.</span>
+    <span>In crisis in the US? Call or text <b>988</b>. In danger, call <b>911</b>.</span>
+  </div>
+</footer>
+
+<div id="stage" hidden role="dialog" aria-modal="true" aria-labelledby="stageTitle">
+  <div class="card stage-inner">
+    <div class="stage-head">
+      <div><span class="eyebrow" id="stageKicker"></span><h2 id="stageTitle"></h2></div>
+      <button class="btn ghost" id="stageClose" type="button" aria-label="Close">Close</button>
+    </div>
+    <div id="stageBody"></div>
+  </div>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+/* ---------- skills + state ---------- */
+const SK={
+  self:{name:"Self-awareness",c:"var(--sun)"},
+  manage:{name:"Self-management",c:"var(--mint)"},
+  social:{name:"Social awareness",c:"var(--sky)"},
+  relate:{name:"Relationship skills",c:"var(--flare)"},
+  decide:{name:"Decision-making",c:"var(--plum)"}
+};
+const MOODS=[
+  {v:1,w:"Heavy",c:"var(--plum)"},{v:2,w:"Low",c:"var(--sky)"},{v:3,w:"Meh",c:"var(--sunk)"},
+  {v:4,w:"Good",c:"var(--mint)"},{v:5,w:"Bright",c:"var(--sun)"}
+];
+const KEY="flogo.proto.v1";
+const fresh=()=>({xp:{self:0,manage:0,social:0,relate:0,decide:0},log:[],plays:0,moveMin:0,days:[]});
+let S=fresh();
+try{const raw=localStorage.getItem(KEY);if(raw){S=Object.assign(fresh(),JSON.parse(raw))}}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const today=()=>new Date().toISOString().slice(0,10);
+function markDay(){const d=today();if(!S.days.includes(d))S.days.push(d)}
+function streak(){
+  const set=new Set(S.days);let n=0;const d=new Date();
+  if(!set.has(d.toISOString().slice(0,10)))d.setDate(d.getDate()-1);
+  while(set.has(d.toISOString().slice(0,10))){n++;d.setDate(d.getDate()-1)}
+  return n;
+}
+const totalXP=()=>Object.values(S.xp).reduce((a,b)=>a+b,0);
+let toastT;
+function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2600)}
+function award(obj,quiet){
+  const parts=[];
+  for(const k in obj){if(!obj[k])continue;S.xp[k]=(S.xp[k]||0)+obj[k];parts.push("+"+obj[k]+" "+SK[k].name)}
+  markDay();save();renderChrome();
+  if(parts.length&&!quiet)toast(parts.join(" · "));
+}
+const earnHTML=obj=>`<div class="earn">${Object.keys(obj).filter(k=>obj[k]).map(k=>`<span style="--c:${SK[k].c}">+${obj[k]} ${SK[k].name}</span>`).join("")||'<span style="--c:var(--sunk)">No points this time</span>'}</div>`;
+
+/* ---------- art for tiles ---------- */
+const ART={
+  crossroads:`<svg viewBox="0 0 300 120" preserveAspectRatio="xMidYMid slice"><path d="M150 130 L150 70 L70 10 M150 70 L230 10 M150 70 L150 -10" stroke="var(--line)" stroke-width="10" fill="none" stroke-linecap="round"/><circle cx="150" cy="70" r="14" fill="var(--surface)" stroke="var(--line)" stroke-width="4"/><rect x="40" y="18" width="70" height="26" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="3" transform="rotate(-8 75 31)"/><rect x="195" y="18" width="70" height="26" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="3" transform="rotate(8 230 31)"/></svg>`,
+  read:`<svg viewBox="0 0 300 120" preserveAspectRatio="xMidYMid slice"><rect x="34" y="22" width="120" height="40" rx="18" fill="var(--surface)" stroke="var(--line)" stroke-width="3"/><rect x="146" y="58" width="120" height="40" rx="18" fill="var(--sun)" stroke="var(--line)" stroke-width="3"/><circle cx="70" cy="42" r="5" fill="var(--line)"/><circle cx="94" cy="42" r="5" fill="var(--line)"/><circle cx="118" cy="42" r="5" fill="var(--line)"/><path d="M175 78 h60" stroke="var(--line)" stroke-width="4" stroke-linecap="round"/></svg>`,
+  reframe:`<svg viewBox="0 0 300 120" preserveAspectRatio="xMidYMid slice"><rect x="60" y="20" width="80" height="80" rx="8" fill="var(--surface)" stroke="var(--line)" stroke-width="3" transform="rotate(-6 100 60)"/><rect x="160" y="20" width="80" height="80" rx="8" fill="var(--mint)" stroke="var(--line)" stroke-width="3" transform="rotate(6 200 60)"/><path d="M85 60 l12 -14 m-12 14 l12 14 M118 60 h-30" stroke="var(--line)" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M185 60 l10 10 l20 -22" stroke="var(--line)" stroke-width="5" fill="none" stroke-linecap="round"/></svg>`,
+  steady:`<svg viewBox="0 0 300 120" preserveAspectRatio="xMidYMid slice"><path d="M-10 100 L50 20 L140 100 L200 20 L290 100 L350 20" stroke="var(--surface)" stroke-width="26" fill="none" stroke-linejoin="round" opacity=".7"/><path d="M-10 100 L50 20 L140 100 L200 20 L290 100 L350 20" stroke="var(--line)" stroke-width="3" fill="none" stroke-dasharray="6 6"/><circle cx="95" cy="60" r="12" fill="var(--sun)" stroke="var(--line)" stroke-width="3"/></svg>`,
+  box:`<svg viewBox="0 0 300 120" preserveAspectRatio="xMidYMid slice"><rect x="110" y="20" width="80" height="80" rx="10" fill="none" stroke="var(--line)" stroke-width="4"/><circle cx="190" cy="20" r="10" fill="var(--sun)" stroke="var(--line)" stroke-width="3"/><text x="150" y="66" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-weight="600" font-size="16" fill="var(--line)">4·4·4·4</text></svg>`,
+  ground:`<svg viewBox="0 0 300 120" preserveAspectRatio="xMidYMid slice"><g font-family="Bricolage Grotesque,sans-serif" font-weight="800" fill="var(--surface)" stroke="var(--line)" stroke-width="2.5"><text x="40" y="95" font-size="80">5</text><text x="95" y="95" font-size="66">4</text><text x="145" y="95" font-size="54">3</text><text x="188" y="95" font-size="42">2</text><text x="222" y="95" font-size="30">1</text></g></svg>`,
+  circuit:`<svg viewBox="0 0 300 120" preserveAspectRatio="xMidYMid slice"><circle cx="150" cy="60" r="40" fill="none" stroke="var(--surface)" stroke-width="14"/><path d="M150 20 A40 40 0 1 1 112 72" fill="none" stroke="var(--line)" stroke-width="14" stroke-linecap="round"/><text x="150" y="67" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-weight="600" font-size="20" fill="var(--line)">3:15</text></svg>`,
+  desk:`<svg viewBox="0 0 300 120" preserveAspectRatio="xMidYMid slice"><rect x="70" y="80" width="160" height="10" rx="4" fill="var(--line)"/><circle cx="150" cy="30" r="12" fill="var(--surface)" stroke="var(--line)" stroke-width="3"/><path d="M150 44 v30 M150 52 l-34 -22 M150 52 l34 -22" stroke="var(--line)" stroke-width="5" stroke-linecap="round" fill="none"/></svg>`
+};
+
+/* ---------- content: Crossroads ---------- */
+const SCEN=[
+ {id:"chat",title:"The screenshot",tag:"Group chat",takeaway:"When you're flooded, the first move is to pause. Decide what to do once your body has calmed down, not while it's screaming.",
+  nodes:{
+   start:{text:"It's 11:40 p.m. Someone in the class group chat posts a screenshot of a private message you sent a friend, about your crush. Twelve laughing reactions so far. Your face is hot and your thumbs are already typing.",
+    choices:[
+     {t:"Fire back with something worse about them.",q:"rough",fb:"Fast relief, long fallout. Hitting back while you're flooded usually escalates things, and now your words are on everyone's screen too.",sk:{},next:"flooded"},
+     {t:"Put the phone face-down and wait a few minutes before deciding anything.",q:"strong",fb:"A spike of anger or shame peaks and fades within minutes if you don't feed it. Pausing protects future-you.",sk:{manage:15},next:"pause"},
+     {t:"Leave every group chat and delete your account.",q:"okay",fb:"Stepping away is valid. Doing it in a panic can cut you off from the people who'd back you up, so make that call once you're calmer.",sk:{manage:5},next:"pause"}]},
+   flooded:{text:"Your reply gets screenshotted too. Now two stories are going around and the chat is getting worse. You feel sick.",
+    choices:[
+     {t:"Delete your message and post: “I was out of line. I was upset.”",q:"strong",fb:"Owning your part, even when someone else started it, takes real strength, and it usually stops the spiral.",sk:{decide:15},next:"pause"},
+     {t:"Keep going. You can't lose now.",q:"rough",fb:"Winning an argument in a group chat rarely feels like winning the next day. Try a different move.",sk:{},next:"flooded"},
+     {t:"Close the app and talk to someone you trust in the morning.",q:"strong",fb:"Exiting is a skill. Nothing has to be solved at midnight.",sk:{manage:10},next:"pause"}]},
+   pause:{text:"Ten minutes later your heart has slowed down. You're still embarrassed. What's your next move?",
+    choices:[
+     {t:"DM the friend who shared it: “That was private and it really hurt. Can you take it down?”",q:"strong",fb:"Clear, calm, and specific: say what happened, how it felt, and what you need. That's the core of standing up for yourself.",sk:{relate:15},next:null},
+     {t:"Text one person you trust and tell them what happened.",q:"strong",fb:"Saying it out loud to someone safe makes it smaller. You don't have to handle it alone.",sk:{self:10,relate:5},next:null},
+     {t:"Act like it's fine and laugh along tomorrow.",q:"okay",fb:"Sometimes that's survival mode, and that's okay. Just know you're allowed to say it wasn't fine.",sk:{self:5},next:null}]}
+  }},
+ {id:"friend",title:"The 3 a.m. text",tag:"A friend in crisis",cw:"mentions suicide",takeaway:"Ask directly. Stay connected. Bring in help: 988, a trusted adult, or 911 in an emergency. You're not supposed to carry this alone.",
+  nodes:{
+   start:{text:"Your phone buzzes at 3:04 a.m. It's Jordan, a close friend who's been quiet lately: “i'm so tired of everything. i don't think i can do this anymore.”",
+    choices:[
+     {t:"Reply: “Are you thinking about killing yourself? I'm here. I'm not going anywhere.”",q:"strong",fb:"Asking directly does not put the idea in someone's head. It tells them you can handle the truth, and it opens the door.",sk:{social:15},next:"yes"},
+     {t:"Send a heart and “get some sleep, it'll feel better tomorrow.”",q:"rough",fb:"It comes from a kind place, but it can feel like being brushed off. A message like this deserves a direct check-in.",sk:{},next:"retry"},
+     {t:"Call them right now.",q:"strong",fb:"Hearing your voice can matter a lot. If they don't pick up, keep texting and ask directly.",sk:{relate:10},next:"yes"}]},
+   retry:{text:"Jordan replies: “yeah ok.” Something feels off. What do you do?",
+    choices:[
+     {t:"Write back: “Actually, I'm worried about you. Are you thinking about suicide?”",q:"strong",fb:"Doubling back is always allowed. Trusting your gut here could matter a lot.",sk:{social:15},next:"yes"},
+     {t:"Go to sleep. They said ok.",q:"rough",fb:"When your gut says something's off, trust it. Try again.",sk:{},next:"retry"}]},
+   yes:{text:"Jordan answers: “sometimes. tonight it's bad.” You're scared. What's your next step?",
+    choices:[
+     {t:"Stay with them: “Thank you for telling me. Let's call or text 988 together right now.”",q:"strong",fb:"In the US, 988 (call or text) reaches the Suicide & Crisis Lifeline 24/7. You don't have to be the counselor. You help them reach one.",sk:{decide:20},next:null},
+     {t:"Promise you won't tell anyone.",q:"rough",fb:"Never promise secrecy when someone's safety is at risk. Getting them help is being a good friend, even if they're upset with you at first.",sk:{},next:"yes"},
+     {t:"Keep texting while you wake a parent or another trusted adult.",q:"strong",fb:"Bringing in an adult is not betrayal. If someone is in immediate danger, call 911.",sk:{decide:15,relate:5},next:null}]}
+  }},
+ {id:"results",title:"Results day",tag:"Setback",takeaway:"Setbacks hurt because you care. Name the feeling, then pick one next step you control.",
+  nodes:{
+   start:{text:"Grades are up. You got a D on the exam you studied all week for. Your parents expect a B or better, and the group chat is full of “ez A.”",
+    choices:[
+     {t:"Tell yourself: “I'm just stupid. I'll never be good at this.”",q:"rough",fb:"That's labeling, a thinking trap. One grade is information about one test, not a verdict on you.",sk:{},next:"plan"},
+     {t:"Notice it: “I'm disappointed, and kind of scared to tell my parents.”",q:"strong",fb:"Naming the exact feeling turns down the alarm in your brain. People call it “name it to tame it.”",sk:{self:15},next:"plan"},
+     {t:"Say the grades aren't posted yet.",q:"okay",fb:"Buying time is understandable. Secrets get heavier the longer you carry them, though.",sk:{},next:"plan"}]},
+   plan:{text:"Okay. It's a D. What do you do with the next 48 hours?",
+    choices:[
+     {t:"Email the teacher to ask what went wrong and whether there's a retake or office hours.",q:"strong",fb:"Going to the source turns a vague bad feeling into a concrete plan.",sk:{decide:15},next:null},
+     {t:"Tell your parents yourself, with a plan: “I got a D. Here's what I'm doing about it.”",q:"strong",fb:"Leading with honesty and a plan changes the whole conversation.",sk:{relate:15},next:null},
+     {t:"Cram all weekend with no breaks.",q:"okay",fb:"Effort is great; burnout isn't. Plan study blocks with real breaks and real sleep.",sk:{manage:5},next:null}]}
+  }},
+ {id:"ride",title:"The ride home",tag:"Peer pressure",takeaway:"Pressure is loudest in the moment. Have your exit line or code word ready before you need it.",
+  nodes:{
+   start:{text:"1 a.m. after a party. Your ride, Alex, has had several drinks and is spinning the keys: “I'm fine. Get in, everyone's going.” Three friends are already in the car.",
+    choices:[
+     {t:"Get in. It's a short drive and everyone else is going.",q:"rough",fb:"Short drives aren't safer drives. That's the group pressure talking. Rewind and try again.",sk:{},next:"start"},
+     {t:"Say: “I'm not getting in. Let's get a ride. I'll call one.”",q:"strong",fb:"Clear and short. You don't owe a long explanation for staying alive.",sk:{decide:15},next:"push"},
+     {t:"Make an excuse: “I left my jacket inside, go without me.”",q:"okay",fb:"It keeps you safe, and an exit line is a real skill. Your friends are still in that car, though.",sk:{manage:5},next:"push"}]},
+   push:{text:"Alex rolls their eyes: “Seriously? You're being so dramatic.” Everyone's looking at you.",
+    choices:[
+     {t:"Stay calm: “Maybe. I still want everyone home in one piece. Give me the keys, I'll get us a ride.”",q:"strong",fb:"You took the heat without taking the bait, and you looked out for everyone.",sk:{relate:15},next:null},
+     {t:"Text a parent or older sibling your code word so they come get you, no questions asked.",q:"strong",fb:"Agreeing on a no-questions code word ahead of time is one of the best exits there is.",sk:{decide:10,manage:5},next:null},
+     {t:"Laugh it off and get in.",q:"rough",fb:"Being called dramatic stings for a minute. A crash doesn't. Try another move.",sk:{},next:"push"}]}
+  }}
+];
+const QL={strong:"Strong move",okay:"Understandable",rough:"Rough road"};
+
+function runCrossroads(b){
+  const pick=()=>{
+    b.innerHTML=`<p class="lede">Pick a situation. There's no game over here, only choices and where they lead. Some situations loop back so you can try a different move.</p>
+    <div class="pick-grid">${SCEN.map((s,i)=>`<button class="pick" data-i="${i}" type="button"><span class="tag">${s.tag}</span><strong>${s.title}</strong>${s.cw?`<small>Content note: ${s.cw}</small>`:"<small>2–3 decisions</small>"}</button>`).join("")}</div>`;
+    $$(".pick",b).forEach(el=>el.onclick=()=>play(SCEN[+el.dataset.i]));
+  };
+  const play=s=>{
+    const earned={};let steps=0;
+    const node=id=>{
+      const n=s.nodes[id];steps++;
+      b.innerHTML=`<div class="spread"><span class="tag">${s.tag} · ${s.title}</span><span class="mono" style="font-size:13px;color:var(--muted)">Decision ${steps}</span></div>
+      <p class="scene-text">${n.text}</p>
+      <div class="choices">${n.choices.map((c,i)=>`<button class="choice" data-i="${i}" type="button"><span class="key">${"ABC"[i]}</span><span>${c.t}</span></button>`).join("")}</div>
+      <div class="fb" id="fb" hidden></div>`;
+      $$(".choice",b).forEach(el=>el.onclick=()=>{
+        const c=n.choices[+el.dataset.i];
+        $$(".choice",b).forEach(x=>x.disabled=true);el.classList.add("picked");
+        for(const k in c.sk)earned[k]=(earned[k]||0)+c.sk[k];
+        const fb=$("#fb",b);fb.hidden=false;
+        const again=c.next===id;
+        fb.innerHTML=`<span class="q ${c.q}">${QL[c.q]}</span><p>${c.fb}</p>${Object.keys(c.sk).length?earnHTML(c.sk):""}
+          <div class="row"><button class="btn primary" type="button" id="cont">${c.next?(again?"Try again":"Continue"):"See how it went"}</button></div>`;
+        $("#cont",b).onclick=()=>c.next?node(c.next):finish();
+        $("#cont",b).focus();
+      });
+    };
+    const finish=()=>{
+      S.plays++;award(earned);
+      b.innerHTML=`<span class="tag">${s.title} · complete</span>
+      <h3 style="font-size:28px">What you practiced</h3>${earnHTML(earned)}
+      <div class="fb"><span class="eyebrow">Take this with you</span><p style="font-size:18px">${s.takeaway}</p></div>
+      <div class="row"><button class="btn hot" id="another" type="button">Play another situation</button><button class="btn" id="done" type="button">Done</button></div>`;
+      $("#another",b).onclick=pick;$("#done",b).onclick=closeStage;
+    };
+    node("start");
+  };
+  pick();
+}
+
+/* ---------- content: Read the Room ---------- */
+const ROOM=[
+ {s:"Your best friend posts beach photos with the rest of your friend group. Nobody invited you or even mentioned it.",o:["Left out","Proud","Bored","Relieved"],a:0,ok:[],n:"Feeling left out often mixes hurt with a little anger. Both are signals that connection matters to you."},
+ {s:"Three deadlines tomorrow, a shift tonight, and your phone won't stop buzzing.",o:["Jealous","Overwhelmed","Content","Embarrassed"],a:1,ok:[],n:"Overwhelm is the feeling of too much at once. Writing a list of what's actually due shrinks it fast."},
+ {s:"You trip walking up to present, and the whole class laughs.",o:["Guilty","Grateful","Embarrassed","Lonely"],a:2,ok:[],n:"Embarrassment is about being seen. Guilt is about something you did to someone. Different feelings, different fixes."},
+ {s:"A teammate who barely shows up to practice gets named captain instead of you.",o:["Relieved","Jealous","Ashamed","Frustrated"],a:1,ok:[3],n:"Jealousy points to something you want. It can turn into motivation instead of a grudge."},
+ {s:"You snapped at your little brother for no reason. Now he's in his room crying.",o:["Proud","Excited","Guilty","Bored"],a:2,ok:[],n:"Guilt nudges you to repair. A real apology usually helps both of you."},
+ {s:"Your job interview is in ten minutes. Your hands are shaking and your stomach is in knots.",o:["Anxious","Bored","Ashamed","Excited"],a:0,ok:[3],n:"Anxiety and excitement feel almost the same in your body. Some people reframe the jitters as “I'm ready.”"},
+ {s:"The test you were dreading just got moved to next week.",o:["Disappointed","Relieved","Lonely","Jealous"],a:1,ok:[],n:"Relief is your body letting go of tension. Notice how good it feels to breathe out."},
+ {s:"You finished the 5K you trained for. Slower than you hoped, but you finished.",o:["Embarrassed","Scared","Proud","Disappointed"],a:2,ok:[3],n:"Two feelings can be true at once. Let yourself keep the proud part."},
+ {s:"Your roommate keeps eating your food, and you just found the last of your leftovers gone again.",o:["Frustrated","Grateful","Scared","Content"],a:0,ok:[],n:"Frustration means a boundary got crossed. It's a cue to have the conversation, calmly, before it builds."},
+ {s:"You moved cities for school. It's Friday night and everyone back home is together without you.",o:["Lonely","Proud","Relieved","Guilty"],a:0,ok:[],n:"Loneliness is a need for connection, not a flaw. One small reach-out counts."}
+];
+function runRoom(b){
+  const ROUNDS=8,LIMIT=12;let deck,i,score,timer,start;
+  const intro=()=>{
+    b.innerHTML=`<p class="lede">Read a moment, then name the feeling. You get ${LIMIT} seconds per round. The closer and faster you are, the more points you score. Getting good at naming feelings, yours and other people's, is half of handling them.</p>
+    <div class="row"><button class="btn hot" id="go" type="button">Start · ${ROUNDS} rounds</button></div>`;
+    $("#go",b).onclick=begin;
+  };
+  const begin=()=>{deck=shuffle(ROOM).slice(0,ROUNDS);i=0;score=0;round()};
+  const round=()=>{
+    const r=deck[i];
+    b.innerHTML=`<div class="spread"><span class="tag">Round ${i+1} of ${ROUNDS}</span><span class="score">${score} pts</span></div>
+    <div class="timer"><i id="bar"></i></div>
+    <div class="prompt-card">${r.s}</div>
+    <div class="opts">${r.o.map((o,k)=>`<button class="opt" data-k="${k}" type="button">${o}</button>`).join("")}</div>
+    <div class="fb" id="fb" hidden></div>`;
+    start=performance.now();
+    const bar=$("#bar",b);
+    timer=setInterval(()=>{const left=1-(performance.now()-start)/(LIMIT*1000);bar.style.width=Math.max(0,left*100)+"%";if(left<=0)answer(-1)},100);
+    $$(".opt",b).forEach(el=>el.onclick=()=>answer(+el.dataset.k));
+  };
+  const answer=k=>{
+    clearInterval(timer);const r=deck[i];const secs=(performance.now()-start)/1000;
+    $$(".opt",b).forEach((el,j)=>{el.disabled=true;if(j===r.a)el.classList.add("right","choice");else if(j===k)el.classList.add("wrong","choice")});
+    let pts=0,label,q;
+    if(k===r.a){pts=10+Math.max(0,Math.round((LIMIT-secs)/2));label="Spot on";q="strong"}
+    else if(r.ok.includes(k)){pts=5;label="Close. That fits too";q="okay"}
+    else{label=k<0?"Time's up":"Not quite";q="rough"}
+    score+=pts;
+    const fb=$("#fb",b);fb.hidden=false;
+    fb.innerHTML=`<span class="q ${q}">${label}${pts?" · +"+pts:""}</span><p><b>${r.o[r.a]}.</b> ${r.n}</p><div class="row"><button class="btn primary" id="nx" type="button">${i+1<ROUNDS?"Next round":"See results"}</button></div>`;
+    $("#nx",b).onclick=()=>{i++;i<ROUNDS?round():end()};$("#nx",b).focus();
+  };
+  const end=()=>{
+    const pts=Math.round(score/4);S.plays++;award({social:pts,self:Math.round(pts/3)});
+    b.innerHTML=`<span class="eyebrow">Final score</span><div class="big-result">${score}</div>
+    <p class="lede">${score>=110?"You read people well. That's empathy in action.":score>=70?"Solid read. Feelings are tricky, and the close calls count.":"Feelings are hard to name, and you're practicing. Try another run."}</p>
+    ${earnHTML({social:pts,self:Math.round(pts/3)})}
+    <div class="row"><button class="btn hot" id="again" type="button">Play again</button><button class="btn" id="done" type="button">Done</button></div>`;
+    $("#again",b).onclick=begin;$("#done",b).onclick=closeStage;
+  };
+  intro();
+  return ()=>clearInterval(timer);
+}
+
+/* ---------- content: Reframe ---------- */
+const TRAPS={
+  "Catastrophizing":"Jumping to the worst possible outcome.",
+  "Mind reading":"Assuming you know what someone else is thinking.",
+  "All-or-nothing":"Seeing things as total success or total failure.",
+  "Labeling":"Turning one mistake into a label for your whole self.",
+  "Should statements":"Holding yourself to rigid rules about how you should feel or act.",
+  "Personalizing":"Blaming yourself for things that aren't yours to control.",
+  "Fortune telling":"Predicting the future as if it's already decided."
+};
+const THOUGHTS=[
+ {t:"If I mess up this presentation, my whole future is over.",trap:"Catastrophizing",r:["A rough presentation would be uncomfortable, and I'd recover. One talk doesn't decide my future.","I'll just be perfect, so it doesn't matter.","I should skip it so I can't mess up."]},
+ {t:"She didn't text back. She must think I'm annoying.",trap:"Mind reading",r:["I don't actually know why she hasn't replied. She might be busy. I can check in later.","She definitely hates me, so I'll stop texting her.","I'll send ten more messages until she answers."]},
+ {t:"I missed one workout, so this whole week is ruined.",trap:"All-or-nothing",r:["One missed workout is one missed workout. I can still do the next one.","I'll make up for it by doing three workouts tomorrow.","I'm just not a gym person."]},
+ {t:"I didn't get the job. I'm such a loser.",trap:"Labeling",r:["Not getting this job is disappointing. It doesn't make me a loser. What can I learn for the next one?","The interviewer was a loser anyway.","I'll stop applying so this never happens again."]},
+ {t:"I should be over this breakup by now.",trap:"Should statements",r:["Healing doesn't run on a schedule. It makes sense that I'm still sad.","I need to act happy so nobody notices.","Something is wrong with me for still caring."]},
+ {t:"My parents are fighting again. It's probably my fault.",trap:"Personalizing",r:["Adults argue for lots of reasons that have nothing to do with me. I can tell someone how it's affecting me.","If I'm perfect, they'll stop fighting.","I'll stay out of the house so it's not my problem."]},
+ {t:"Nobody is going to talk to me at the new school anyway.",trap:"Fortune telling",r:["I can't predict that. I can try saying hi to one person this week.","I'll wait until someone else makes the first move.","Everyone already has friends, so there's no point."]}
+];
+function runReframe(b){
+  let deck,i,s1,s2;
+  const intro=()=>{
+    b.innerHTML=`<p class="lede">Your brain sometimes takes shortcuts that make things feel worse than they are. These are called thinking traps. For each thought: first spot the trap, then pick the reframe that's both honest and kind.</p>
+    <ul class="steps-list">${Object.entries(TRAPS).map(([k,v])=>`<li><span><b>${k}</b></span><span>${v}</span></li>`).join("")}</ul>
+    <div class="row"><button class="btn hot" id="go" type="button">Start · 5 thoughts</button></div>`;
+    $("#go",b).onclick=begin;
+  };
+  const begin=()=>{deck=shuffle(THOUGHTS).slice(0,5);i=0;s1=0;s2=0;stepTrap()};
+  const stepTrap=()=>{
+    const th=deck[i];const others=shuffle(Object.keys(TRAPS).filter(k=>k!==th.trap)).slice(0,3);const opts=shuffle([th.trap,...others]);
+    b.innerHTML=`<div class="spread"><span class="tag">Thought ${i+1} of 5 · Step 1: spot the trap</span><span class="score">${s1+s2} pts</span></div>
+    <div class="thought">“${th.t}”</div>
+    <div class="opts">${opts.map(o=>`<button class="opt" data-o="${o}" type="button">${o}</button>`).join("")}</div><div class="fb" id="fb" hidden></div>`;
+    $$(".opt",b).forEach(el=>el.onclick=()=>{
+      const ok=el.dataset.o===th.trap;if(ok)s1+=10;
+      $$(".opt",b).forEach(x=>{x.disabled=true;if(x.dataset.o===th.trap)x.classList.add("right","choice");else if(x===el)x.classList.add("wrong","choice")});
+      const fb=$("#fb",b);fb.hidden=false;
+      fb.innerHTML=`<span class="q ${ok?"strong":"rough"}">${ok?"Spotted":"Not this one"}</span><p><b>${th.trap}:</b> ${TRAPS[th.trap]}</p><div class="row"><button class="btn primary" id="nx" type="button">Now reframe it</button></div>`;
+      $("#nx",b).onclick=stepReframe;$("#nx",b).focus();
+    });
+  };
+  const stepReframe=()=>{
+    const th=deck[i];const opts=shuffle(th.r.map((t,k)=>({t,k})));
+    b.innerHTML=`<div class="spread"><span class="tag">Thought ${i+1} of 5 · Step 2: reframe</span><span class="score">${s1+s2} pts</span></div>
+    <div class="thought">“${th.t}”</div>
+    <div class="choices">${opts.map((o,j)=>`<button class="choice" data-k="${o.k}" type="button"><span class="key">${"ABC"[j]}</span><span>${o.t}</span></button>`).join("")}</div><div class="fb" id="fb" hidden></div>`;
+    $$(".choice",b).forEach(el=>el.onclick=()=>{
+      const ok=el.dataset.k==="0";if(ok)s2+=10;
+      $$(".choice",b).forEach(x=>{x.disabled=true;if(x.dataset.k==="0")x.classList.add("right");else if(x===el)x.classList.add("wrong")});
+      const fb=$("#fb",b);fb.hidden=false;
+      fb.innerHTML=`<span class="q ${ok?"strong":"rough"}">${ok?"Balanced":"Still in the trap"}</span><p>${ok?"Honest about the hard part, without the extra weight.":"A good reframe isn't fake positivity or avoidance. It's what you'd say to a friend who had this thought."}</p><div class="row"><button class="btn primary" id="nx" type="button">${i<4?"Next thought":"See results"}</button></div>`;
+      $("#nx",b).onclick=()=>{i++;i<5?stepTrap():end()};$("#nx",b).focus();
+    });
+  };
+  const end=()=>{
+    const e={self:s1,manage:s2};S.plays++;award(e);
+    b.innerHTML=`<span class="eyebrow">Traps spotted · reframes found</span><div class="big-result">${s1/10}/5 · ${s2/10}/5</div>
+    <p class="lede">Next time a thought hits hard, ask: is this a fact, or a trap? What would I tell a friend?</p>${earnHTML(e)}
+    <div class="row"><button class="btn hot" id="again" type="button">Play again</button><button class="btn" id="done" type="button">Done</button></div>`;
+    $("#again",b).onclick=begin;$("#done",b).onclick=closeStage;
+  };
+  intro();
+}
+
+/* ---------- arcade: Steady ---------- */
+function runSteady(b){
+  b.innerHTML=`<p class="lede">Hold to breathe in and rise. Let go to breathe out and drift down. Stay inside the ribbon. The rhythm is 4 seconds in, 6 seconds out: a longer exhale tells your body it's safe to calm down.</p>
+  <div class="steady-wrap"><canvas id="sc" aria-label="Breathing game. Hold to rise, release to fall."></canvas>
+    <div class="steady-hud"><span id="sPhase">Get ready</span><span id="sZone">0% in rhythm</span><span id="sTime">60s</span></div>
+    <div class="overlay" id="sOver"><button class="btn hot" id="sGo" type="button">Start · 60 seconds</button><small>Hold the mouse button, your finger, or the Space bar</small></div>
+  </div>`;
+  const cv=$("#sc",b),ctx=cv.getContext("2d");let W=0,H=0;
+  const size=()=>{const d=window.devicePixelRatio||1;W=cv.clientWidth;H=cv.clientHeight;cv.width=W*d;cv.height=H*d;ctx.setTransform(d,0,0,d,0,0)};
+  const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const f=t=>{const p=((t%10)+10)%10;return p<4?p/4:1-(p-4)/6};
+  const DUR=60,TOL=.13;let hold=false,v=0,t=0,inZ=0,run=false,raf,last=performance.now();
+  const pad=40,yOf=x=>H-pad-x*(H-pad*2),PX=()=>W*.25,PPS=()=>W/7;
+  function draw(){
+    const C={bg:css("--sunk"),line:css("--line"),mint:css("--mint"),flare:css("--flare"),surf:css("--surface"),muted:css("--muted")};
+    ctx.fillStyle=C.bg;ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle=C.muted;ctx.globalAlpha=.25;ctx.lineWidth=1;
+    for(let g=0;g<=4;g++){const y=yOf(g/4);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+    ctx.globalAlpha=1;
+    const path=()=>{ctx.beginPath();for(let x=0;x<=W;x+=4){const tt=t+(x-PX())/PPS();const y=yOf(f(tt));x?ctx.lineTo(x,y):ctx.moveTo(x,y)}};
+    path();ctx.lineJoin="round";ctx.lineCap="round";ctx.strokeStyle=C.mint;ctx.globalAlpha=.35;ctx.lineWidth=TOL*2*(H-pad*2);ctx.stroke();
+    ctx.globalAlpha=1;path();ctx.setLineDash([6,7]);ctx.strokeStyle=C.line;ctx.lineWidth=2;ctx.stroke();ctx.setLineDash([]);
+    ctx.strokeStyle=C.line;ctx.globalAlpha=.4;ctx.beginPath();ctx.moveTo(PX(),0);ctx.lineTo(PX(),H);ctx.stroke();ctx.globalAlpha=1;
+    const zone=Math.abs(v-f(t))<TOL;
+    ctx.beginPath();ctx.arc(PX(),yOf(v),hold?15:13,0,Math.PI*2);ctx.fillStyle=zone?C.mint:C.flare;ctx.fill();ctx.lineWidth=3;ctx.strokeStyle=C.line;ctx.stroke();
+  }
+  function loop(now){
+    const dt=Math.min(.05,(now-last)/1000);last=now;
+    if(run){
+      t+=dt;v+=hold?dt/4:-dt/6;v=Math.max(0,Math.min(1,v));
+      if(Math.abs(v-f(t))<TOL)inZ+=dt;
+      const p=t%10;$("#sPhase",b).textContent=p<4?`Breathe in · ${Math.ceil(4-p)}`:`Breathe out · ${Math.ceil(10-p)}`;
+      $("#sZone",b).textContent=Math.round(inZ/Math.max(t,.001)*100)+"% in rhythm";
+      $("#sTime",b).textContent=Math.max(0,Math.ceil(DUR-t))+"s";
+      if(t>=DUR)end();
+    }
+    draw();raf=requestAnimationFrame(loop);
+  }
+  const down=e=>{if(!run)return;hold=true;if(e.pointerId!=null)try{cv.setPointerCapture(e.pointerId)}catch(_){}};
+  const up=()=>{hold=false};
+  const kd=e=>{if(e.code==="Space"&&run){e.preventDefault();hold=true}};
+  const ku=e=>{if(e.code==="Space"){e.preventDefault();hold=false}};
+  cv.addEventListener("pointerdown",down);cv.addEventListener("pointerup",up);cv.addEventListener("pointercancel",up);cv.addEventListener("pointerleave",up);
+  window.addEventListener("keydown",kd);window.addEventListener("keyup",ku);
+  const ro=new ResizeObserver(size);ro.observe(cv);size();
+  const go=()=>{t=0;v=0;inZ=0;hold=false;run=true;$("#sOver",b).hidden=true;cv.focus()};
+  function end(){
+    run=false;hold=false;const pct=Math.round(inZ/DUR*100);const pts=5+Math.round(pct/5);S.plays++;S.moveMin+=1;award({manage:pts});
+    const o=$("#sOver",b);o.hidden=false;
+    o.innerHTML=`<div class="big-result">${pct}%</div><p>in rhythm for 60 seconds of slow breathing</p><small>${pct>=70?"Smooth. Your breathing just slowed your heart rate down.":pct>=40?"Getting there. Try matching the turn at the top a little earlier.":"Tricky at first. Count “in, 2, 3, 4” and “out, 2, 3, 4, 5, 6.”"}</small>${earnHTML({manage:pts})}<div class="row" style="justify-content:center"><button class="btn hot" id="sAgain" type="button">Play again</button><button class="btn" id="sDone" type="button">Done</button></div>`;
+    $("#sAgain",b).onclick=go;$("#sDone",b).onclick=closeStage;
+    $("#sPhase",b).textContent="Done";
+  }
+  $("#sGo",b).onclick=go;
+  raf=requestAnimationFrame(loop);
+  return ()=>{cancelAnimationFrame(raf);ro.disconnect();window.removeEventListener("keydown",kd);window.removeEventListener("keyup",ku)};
+}
+
+/* ---------- move: Box breathing ---------- */
+function runBox(b){
+  const PH=["Breathe in","Hold","Breathe out","Hold"],ROUNDS=4;
+  b.innerHTML=`<p class="lede">Follow the dot around the square: in for 4, hold for 4, out for 4, hold for 4. Four rounds takes about a minute. Athletes and first responders use this one before high-pressure moments.</p>
+  <div class="box-wrap"><svg viewBox="0 0 240 240" aria-hidden="true"><rect x="20" y="20" width="200" height="200" rx="16" fill="var(--paper)" stroke="var(--line)" stroke-width="4"/><circle id="dot" cx="20" cy="20" r="13" fill="var(--sun)" stroke="var(--line)" stroke-width="3"/><text id="phTxt" x="120" y="118" text-anchor="middle" font-family="Bricolage Grotesque,sans-serif" font-weight="800" font-size="24" fill="var(--ink)">Ready?</text><text id="ctTxt" x="120" y="146" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="15" fill="var(--muted)">4 rounds</text></svg>
+  <div class="row"><button class="btn hot" id="bGo" type="button">Start</button><button class="btn ghost" id="bStop" type="button" hidden>Stop</button></div></div>`;
+  const dot=$("#dot",b),ph=$("#phTxt",b),ct=$("#ctTxt",b);let raf,t0,run=false;
+  const pos=(seg,p)=>{const a=20,z=220,d=z-a;return [[a+d*p,a],[z,a+d*p],[z-d*p,z],[a,z-d*p]][seg]};
+  const loop=now=>{
+    const e=(now-t0)/1000;if(e>=ROUNDS*16){finish();return}
+    const seg=Math.floor(e/4)%4,p=(e%4)/4,[x,y]=pos(seg,p);
+    dot.setAttribute("cx",x);dot.setAttribute("cy",y);ph.textContent=PH[seg];ct.textContent=`${Math.ceil(4-(e%4))} · round ${Math.floor(e/16)+1} of ${ROUNDS}`;
+    raf=requestAnimationFrame(loop);
+  };
+  const finish=()=>{run=false;ph.textContent="Nice work";ct.textContent="Notice how you feel now";$("#bGo",b).hidden=false;$("#bGo",b).textContent="Go again";$("#bStop",b).hidden=true;S.moveMin+=1;award({manage:10})};
+  $("#bGo",b).onclick=()=>{run=true;t0=performance.now();$("#bGo",b).hidden=true;$("#bStop",b).hidden=false;raf=requestAnimationFrame(loop)};
+  $("#bStop",b).onclick=()=>{cancelAnimationFrame(raf);run=false;ph.textContent="Paused";ct.textContent="Start again when ready";$("#bGo",b).hidden=false;$("#bStop",b).hidden=true};
+  return ()=>cancelAnimationFrame(raf);
+}
+
+/* ---------- move: 5-4-3-2-1 ---------- */
+function runGround(b){
+  const ST=[[5,"things you can see","Look around. Name five things, even tiny ones: a crack in the ceiling, the color of your shoelace."],[4,"things you can feel","Your feet on the floor, your sleeve on your arm, the chair under you."],[3,"things you can hear","One close by, one far away, one you'd normally tune out."],[2,"things you can smell","If nothing's around, name two smells you like."],[1,"thing you can taste","Or one thing you're grateful for right now."]];
+  let i=0;
+  const step=()=>{
+    const [n,what,hint]=ST[i];
+    b.innerHTML=`<div class="segs">${ST.map((_,k)=>`<i class="${k<i?"done":k===i?"now":""}"></i>`).join("")}</div>
+    <div class="row" style="gap:20px;align-items:center"><div class="ground-num" aria-hidden="true">${n}</div><div style="flex:1;min-width:200px"><h3 style="font-size:30px">${n} ${what}</h3><p class="lede">${hint}</p></div></div>
+    <div class="ground-inputs">${Array.from({length:n},(_,k)=>`<input type="text" id="g${i}-${k}" aria-label="${what} ${k+1}" placeholder="${k+1}.">`).join("")}</div>
+    <p class="safety">Typing is optional. Saying them in your head works too. Nothing here is saved.</p>
+    <div class="row"><button class="btn primary" id="nx" type="button">${i<4?"Next":"Finish"}</button></div>`;
+    const first=$("input",b);if(first)first.focus();
+    $("#nx",b).onclick=()=>{i++;i<5?step():done()};
+  };
+  const done=()=>{S.moveMin+=2;award({self:10,manage:5});
+    b.innerHTML=`<h3 style="font-size:30px">You're here. Right now.</h3><p class="lede">Grounding works by giving your senses a job, which pulls attention away from the spiral. Use it anywhere: in class, on the bus, before a hard conversation.</p>${earnHTML({self:10,manage:5})}<div class="row"><button class="btn" id="done" type="button">Done</button></div>`;
+    $("#done",b).onclick=closeStage;};
+  b.innerHTML=`<p class="lede">When anxiety spikes, your thoughts race ahead. This brings you back to the room you're actually in, one sense at a time. Takes about two minutes.</p><div class="row"><button class="btn hot" id="go" type="button">Begin</button></div>`;
+  $("#go",b).onclick=step;
+}
+
+/* ---------- move: routines ---------- */
+const ROUTINES={
+  circuit:{name:"Reset Circuit",steps:[["March in place","Lift your knees, swing your arms. Easy pace.",30],["Arm circles","Small circles forward, then switch to backward.",30],["Squats","Sit back like there's a chair behind you. Chair squats count.",30],["Breather","Shake out your hands. One slow breath out.",15],["Wall push-ups","Hands on a wall, lower your chest toward it, press away.",30],["Side steps","Step side to side and swing your arms. Add a little bounce if you want.",30],["Big stretch","Reach up tall, then fold down slowly and let your head hang.",30]],reward:{manage:15}},
+  desk:{name:"Desk Unwind",steps:[["Shoulder rolls","Roll back five times, then forward five times.",20],["Neck release","Ear toward shoulder. Switch sides halfway.",20],["Chest opener","Clasp your hands behind you and lift gently.",20],["Seated twist","Turn to one side. Switch halfway.",20],["Hands and wrists","Make fists, spread your fingers wide, repeat. Then shake.",20],["Unclench","Relax your jaw, drop your shoulders, soften your eyes.",20]],reward:{manage:10,self:5}}
+};
+const fmt=s=>Math.floor(s/60)+":"+String(s%60).padStart(2,"0");
+function runRoutine(key){return b=>{
+  const R=ROUTINES[key],total=R.steps.reduce((a,s)=>a+s[2],0);let i=0,left=0,iv,paused=false,lastTick;
+  b.innerHTML=`<p class="lede">${R.steps.length} moves, ${fmt(total)} total. Go at your own pace and skip anything that hurts. No equipment, works in a bedroom or a dorm.</p>
+  <ul class="steps-list">${R.steps.map(s=>`<li><span>${s[0]}</span><span>${s[2]}s</span></li>`).join("")}</ul>
+  <div class="row"><button class="btn hot" id="go" type="button">Start</button></div>`;
+  $("#go",b).onclick=()=>{i=0;left=R.steps[0][2];paint();lastTick=Date.now();iv=setInterval(tick,200)};
+  function tick(){if(paused)return;const now=Date.now();left-=(now-lastTick)/1000;lastTick=now;if(left<=0){next()}else $("#secs",b).textContent=Math.ceil(left)}
+  function next(){i++;if(i>=R.steps.length){finish();return}left=R.steps[i][2];paint()}
+  function paint(){
+    const s=R.steps[i],nx=R.steps[i+1];
+    b.innerHTML=`<div class="segs">${R.steps.map((_,k)=>`<i class="${k<i?"done":k===i?"now":""}"></i>`).join("")}</div>
+    <div class="move-now"><div><span class="eyebrow">Move ${i+1} of ${R.steps.length}</span><h3>${s[0]}</h3><p>${s[1]}</p></div><div class="secs" id="secs">${Math.ceil(left)}</div></div>
+    <div class="spread"><span class="safety">${nx?"Up next: <b>"+nx[0]+"</b>":"Last one"}</span>
+    <div class="row"><button class="btn" id="pz" type="button">${paused?"Resume":"Pause"}</button><button class="btn ghost" id="sk" type="button">Skip</button></div></div>`;
+    $("#pz",b).onclick=()=>{paused=!paused;lastTick=Date.now();$("#pz",b).textContent=paused?"Resume":"Pause"};
+    $("#sk",b).onclick=next;
+  }
+  function finish(){clearInterval(iv);S.moveMin+=Math.max(1,Math.round(total/60));award(R.reward);
+    b.innerHTML=`<h3 style="font-size:30px">${R.name} done</h3><p class="lede">Moving your body burns off stress hormones and gives your brain a quick mood lift. Check in with yourself: how's your head now compared to before?</p>${earnHTML(R.reward)}<div class="row"><a class="btn primary" href="#home" id="ci">Do a check-in</a><button class="btn" id="done" type="button">Done</button></div>`;
+    $("#done",b).onclick=closeStage;$("#ci",b).onclick=()=>{closeStage()};}
+  return ()=>clearInterval(iv);
+}}
+
+/* ---------- registries ---------- */
+const GAMES=[
+  {id:"crossroads",type:"Story",name:"Crossroads",time:"5–8 min",desc:"Branching stories about real tough moments: a leaked screenshot, a friend in crisis, a failed exam, a drunk driver with the keys.",skills:["decide","relate"],tc:"var(--flare)",run:runCrossroads},
+  {id:"read",type:"Quick-fire",name:"Read the Room",time:"3 min",desc:"Read a moment, name the feeling before the timer runs out. Trains you to spot emotions in yourself and others.",skills:["social","self"],tc:"var(--sky)",run:runRoom},
+  {id:"reframe",type:"Puzzle",name:"Reframe",time:"4 min",desc:"Catch the thinking trap hiding in a harsh thought, then rebuild it into something honest and kind.",skills:["self","manage"],tc:"var(--sun)",run:runReframe},
+  {id:"steady",type:"Arcade",name:"Steady",time:"1 min",desc:"Hold to rise, release to fall. Ride the ribbon and your breathing slows to a calming 4-in, 6-out rhythm.",skills:["manage"],tc:"var(--mint)",run:runSteady}
+];
+const MOVES=[
+  {id:"box",type:"Breathing",name:"Box Breath",time:"1 min",desc:"In 4, hold 4, out 4, hold 4. A fast way to calm your body before a test, a game, or a hard conversation.",skills:["manage"],tc:"var(--mint)",run:runBox},
+  {id:"ground",type:"Grounding",name:"5-4-3-2-1",time:"2 min",desc:"Five things you see, four you feel, three you hear. Pulls you out of a spiral and back into the room.",skills:["self","manage"],tc:"var(--sky)",run:runGround},
+  {id:"circuit",type:"Movement",name:"Reset Circuit",time:"3 min",desc:"Seven no-equipment moves to burn off adrenaline. Marching, squats, wall push-ups, one big stretch.",skills:["manage"],tc:"var(--flare)",run:runRoutine("circuit")},
+  {id:"desk",type:"Stretch",name:"Desk Unwind",time:"2 min",desc:"Release the tension you've been holding in your shoulders, neck, hands and jaw. Works sitting down.",skills:["manage","self"],tc:"var(--plum)",run:runRoutine("desk")}
+];
+const ALL=[...GAMES,...MOVES];
+const tileHTML=g=>`<button class="card tile" type="button" data-run="${g.id}"><div class="art" style="--tc:${g.tc}">${ART[g.id]}</div><span class="tag">${g.type}</span><h3>${g.name}</h3><p>${g.desc}</p><div class="meta"><div class="row" style="gap:10px">${g.skills.map(k=>`<span class="skill-dot" style="--c:${SK[k].c}">${SK[k].name}</span>`).join("")}</div><span class="mono">${g.time}</span></div></button>`;
+
+/* ---------- stage ---------- */
+let cleanup=null,lastFocus=null;
+function openStage(id){
+  const g=ALL.find(x=>x.id===id);if(!g)return;
+  if(cleanup){cleanup();cleanup=null}
+  lastFocus=document.activeElement;
+  $("#stageKicker").textContent=g.type+" · "+g.time;$("#stageTitle").textContent=g.name;
+  const body=$("#stageBody");body.innerHTML="";
+  $("#stage").hidden=false;document.body.style.overflow="hidden";
+  cleanup=g.run(body)||null;
+  $("#stageClose").focus();
+}
+function openHelp(){
+  if(cleanup){cleanup();cleanup=null}
+  lastFocus=document.activeElement;
+  $("#stageKicker").textContent="You don't have to handle this alone";$("#stageTitle").textContent="Need help now?";
+  $("#stageBody").innerHTML=`<div class="help-list">
+   <div class="help-item"><b>In danger right now</b><span>Call emergency services.</span><span class="num">911 (US)</span></div>
+   <div class="help-item"><b>988 Suicide &amp; Crisis Lifeline</b><span>Call or text, 24/7, free and confidential. For you or for a friend you're worried about.</span><span class="num">988 (US)</span></div>
+   <div class="help-item"><b>Crisis Text Line</b><span>Text with a trained crisis counselor, 24/7.</span><span class="num">Text HOME to 741741</span></div>
+   <div class="help-item"><b>Outside the US</b><span>Find a free helpline in your country.</span><a href="https://findahelpline.com" target="_blank" rel="noopener">findahelpline.com</a></div>
+   <div class="help-item"><b>Someone you trust</b><span>A parent, coach, teacher, school counselor, RA, or doctor. Telling one person is a strong first step.</span></div>
+  </div><p class="safety">Flogo is a practice space and not a replacement for professional care.</p>`;
+  $("#stage").hidden=false;document.body.style.overflow="hidden";$("#stageClose").focus();
+}
+function closeStage(){
+  if(cleanup){cleanup();cleanup=null}
+  $("#stage").hidden=true;document.body.style.overflow="";$("#stageBody").innerHTML="";
+  renderProgress();
+  if(lastFocus&&lastFocus.focus)lastFocus.focus();
+}
+$("#stageClose").onclick=closeStage;
+$("#stage").addEventListener("click",e=>{if(e.target.id==="stage")closeStage()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#stage").hidden)closeStage()});
+$("#helpBtn").onclick=openHelp;
+document.addEventListener("click",e=>{const t=e.target.closest("[data-run]");if(t)openStage(t.dataset.run)});
+
+/* ---------- check-in ---------- */
+let mood=0;
+$("#moods").innerHTML=MOODS.map(m=>`<button type="button" class="mood" data-v="${m.v}" aria-pressed="false" style="--mc:${m.c}"><span class="face"></span>${m.w}</button>`).join("");
+$$(".mood").forEach(el=>el.onclick=()=>{mood=+el.dataset.v;$$(".mood").forEach(x=>x.setAttribute("aria-pressed",x===el));$("#saveCheck").disabled=false});
+$("#energy").oninput=e=>$("#energyVal").textContent=e.target.value;
+$("#checkin").addEventListener("submit",e=>{
+  e.preventDefault();if(!mood)return;
+  const energy=+$("#energy").value,note=$("#note").value.trim();
+  S.log.push({t:Date.now(),mood,energy,note});markDay();save();award({self:5},true);toast("Check-in saved · +5 Self-awareness");
+  let msg,id;
+  if(mood<=2&&energy<=4){msg="Low and drained is a real combo. Start small: one minute of box breathing. And if it's been heavy for a while, tell someone you trust.";id="box"}
+  else if(mood<=2){msg="Lots of energy, heavy mood often means stress. Burn some of it off with the Reset Circuit.";id="circuit"}
+  else if(mood===3){msg="Meh days count too. Ground yourself in the present with 5-4-3-2-1.";id="ground"}
+  else{msg="You're in a good spot, which is the best time to practice a hard moment. Try Crossroads.";id="crossroads"}
+  const sg=$("#suggest");sg.hidden=false;
+  sg.innerHTML=`<span class="eyebrow">Suggested for right now</span><p>${msg}</p><div class="row"><button class="btn hot" type="button" data-run="${id}">Open ${ALL.find(x=>x.id===id).name}</button></div>`;
+  $("#note").value="";
+});
+
+/* ---------- render ---------- */
+function renderChrome(){
+  const s=streak();$("#xpChip").textContent=`${totalXP()} XP · ${s}-day streak`;
+}
+function renderHome(){
+  $("#skillKey").innerHTML=Object.values(SK).map(s=>`<span class="skill-dot" style="--c:${s.c}">${s.name}</span>`).join("");
+  const d=Math.floor(Date.now()/864e5);
+  $("#todaySet").innerHTML=tileHTML(GAMES[d%GAMES.length])+tileHTML(MOVES[(d+1)%MOVES.length]);
+  $("#gameTiles").innerHTML=GAMES.map(tileHTML).join("");
+  $("#moveTiles").innerHTML=MOVES.map(tileHTML).join("");
+}
+const EXAMPLE=(()=>{const n=Date.now(),D=864e5;return [[2,4,"stressed about midterms"],[3,5,""],[2,3,"fight with my sister"],[3,6,""],[4,7,"good practice today"],[3,5,""],[4,6,"finally slept"]].map((r,k)=>({t:n-(6-k)*D,mood:r[0],energy:r[1],note:r[2]}))})();
+function renderProgress(){
+  const s=streak();
+  $("#stats").innerHTML=[[totalXP(),"total skill points"],[S.plays,"games played"],[S.moveMin,"minutes of reset"],[s,"day streak"]].map(([b,l])=>`<div class="card stat"><b>${b}</b><span>${l}</span></div>`).join("");
+  $("#skillBars").innerHTML=`<div class="spread"><h3 style="font-size:22px">Five core skills</h3><span class="eyebrow">Level = 100 pts</span></div>`+
+    Object.entries(SK).map(([k,v])=>{const x=S.xp[k]||0,lv=Math.floor(x/100)+1,pct=x%100;return `<div class="bar-row"><span class="skill-dot" style="--c:${v.c};color:var(--ink);font-size:15px">${v.name}</span><div class="track" role="progressbar" aria-label="${v.name}" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><div class="fill" style="--c:${v.c};width:${pct}%"></div></div><span class="lv">Lv ${lv} · ${x}</span></div>`}).join("");
+  const real=S.log.length>0,data=(real?S.log:EXAMPLE).slice(-7);
+  $("#exampleNote").hidden=real;
+  const pad=Array(7-data.length).fill(null).concat(data);
+  $("#moodCols").innerHTML=pad.map(e=>e?`<div class="col"><span class="n">${e.mood}</span><div class="b" style="height:${e.mood/5*85}%;--mc:${MOODS[e.mood-1].c}"></div></div>`:`<div class="col"></div>`).join("");
+  $("#moodLabels").innerHTML=pad.map(e=>`<span>${e?new Date(e.t).toLocaleDateString(undefined,{weekday:"short"}):""}</span>`).join("");
+  const rows=(real?S.log:EXAMPLE).slice(-5).reverse();
+  $("#moodLog").innerHTML=`<div class="spread"><h3 style="font-size:22px">Recent check-ins</h3>${real?"":'<span class="tag">Example</span>'}</div>`+
+    rows.map(e=>`<div class="log-item"><span class="d">${new Date(e.t).toLocaleDateString(undefined,{month:"short",day:"numeric"})}</span><span><b>${MOODS[e.mood-1].w}</b> · energy ${e.energy}/10${e.note?` · <span style="color:var(--muted)">${esc(e.note)}</span>`:""}</span></div>`).join("");
+}
+$("#resetBtn").onclick=()=>{$("#resetConfirm").hidden=false};
+$("#resetNo").onclick=()=>{$("#resetConfirm").hidden=true};
+$("#resetYes").onclick=()=>{S=fresh();save();$("#resetConfirm").hidden=true;renderChrome();renderProgress();toast("Progress cleared")};
+
+/* ---------- router ---------- */
+const VIEWS=["home","play","move","progress"];
+function route(){
+  const h=location.hash.slice(1);const v=VIEWS.includes(h)?h:"home";
+  VIEWS.forEach(x=>$("#view-"+x).hidden=x!==v);
+  $$("nav.tabs a").forEach(a=>a.toggleAttribute("aria-current",false));
+  const cur=$(`nav.tabs a[data-view="${v}"]`);if(cur)cur.setAttribute("aria-current","page");
+  if(v==="progress")renderProgress();
+  if(!$("#stage").hidden&&h)closeStage();
+  window.scrollTo(0,0);
+}
+window.addEventListener("hashchange",route);
+renderHome();renderChrome();renderProgress();route();
+})();
+</script>
+</body>
+</html>
